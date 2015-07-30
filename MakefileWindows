@@ -2,26 +2,31 @@
 CC=g++
 CCC=g++
 CXX=g++
+
 RM = "C:\msys\1.0\bin\rm.exe"
 MKDIR = "C:\msys\1.0\bin\mkdir.exe"
 
 # Constants
 MODULE_HEADERS_DIR = "C:\Program Files (x86)\Jenkins\workspace\module_headers"
+SIMPLEINI_DIR = "C:\Program Files (x86)\Jenkins\workspace\RCML_build\simpleini"
 BOOST_DIR = "C:\boost_1_58_0"
+BOOST_DIR_LIBS = "C:\boost_1_58_0\stage\lib"
 
-INCLUDE_DIR_FLAGS = -I${MODULE_HEADERS_DIR} -I${BOOST_DIR}
+INCLUDE_DIR_FLAGS = -I${MODULE_HEADERS_DIR} -I${SIMPLEINI_DIR} -I${BOOST_DIR}
 
-FLAGS_MUTUAL = -Wall -m32 -std=c++11 -fPIC ${INCLUDE_DIR_FLAGS} -MMD -MP -MF "${OBJECTDIR}/$@.d"
+FLAGS_MUTUAL = -Wall -m32 -std=c++11 ${INCLUDE_DIR_FLAGS} -MMD -MP -MF "${OBJECTDIR}/$@.d"
 
 .PHONY: debug
 
 debug: OBJECTDIR = build/Debug
 debug: FLAGS = -g ${FLAGS_MUTUAL}
+debug: BOOST_LIBS = -lboost_system-mgw48-mt-d-1_58 -lboost_thread-mgw48-mt-d-1_58 
 debug: FILENAME_FIX = debug
 debug: clean module
 
 release: OBJECTDIR = build/Release
-release: FLAGS = -O3 ${FLAGS_MUTUAL} -DIS_RELEASE
+release: FLAGS = -O3 ${FLAGS_MUTUAL}
+release: BOOST_LIBS = -lboost_system-mgw48-mt-1_58 -lboost_thread-mgw48-mt-1_58
 release: FILENAME_FIX = release
 release: clean module
 
@@ -29,19 +34,25 @@ clean:
 	@echo "-------------------------" 
 	${RM} -rf ${OBJECTDIR}
 
-messagesf.o:  messagesf.cpp
+config.o: config.cpp
 	@echo "-------------------------" 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} -f "${OBJECTDIR}/$@.d"
-	$(COMPILE.cc) $(FLAGS) -o ${OBJECTDIR}/messagesf.o messagesf.cpp
+	$(COMPILE.cc) $(FLAGS) -o  ${OBJECTDIR}/config.o config.cpp
+
+messages_functions.o:  messages_functions.cpp
+	@echo "-------------------------" 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} -f "${OBJECTDIR}/$@.d"
+	$(COMPILE.cc) $(FLAGS) -o ${OBJECTDIR}/messages_functions.o messages_functions.cpp
 
 u3d_function_module.o:  u3d_function_module.cpp
 	@echo "-------------------------" 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} -f "${OBJECTDIR}/$@.d"
-	$(COMPILE.cc) $(FLAGS) -o  ${OBJECTDIR}/u3d_function_module.o u3d_function_module.cpp
+	$(COMPILE.cc) $(FLAGS) -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -o  ${OBJECTDIR}/u3d_function_module.o u3d_function_module.cpp
 
-module: messagesf.o u3d_function_module.o 
+module: messages_functions.o u3d_function_module.o config.o
 	@echo "-------------------------" 
 	${MKDIR} -p ${OBJECTDIR}
-	${LINK.cc} -m32 -shared ${OBJECTDIR}/u3d_function_module.o ${OBJECTDIR}/messagesf.o -o ${OBJECTDIR}/u3d_module_$(FILENAME_FIX).dll
+	${LINK.cc} -m32 -shared ${OBJECTDIR}/u3d_function_module.o ${OBJECTDIR}/messages_functions.o ${OBJECTDIR}/config.o -o ${OBJECTDIR}/u3d_module_$(FILENAME_FIX).dll -L${BOOST_LIBS_DIR} ${BOOST_LIBS} -lws2_32 > log_make.log
