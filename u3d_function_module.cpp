@@ -100,13 +100,20 @@ void u3dFunctionModule::read_handler(
                                  handler_socket, _1, _2));
 }
 
-u3dFunctionModule::u3dFunctionModule() : module_socket(robot_io_service_) {
-  postman_thread_waker_flag = false;
-  is_world_initialized = false;
-  // for linux compiler othrwise id don't changes
-  postmans_uniq_id = 0;
-  postmans_uniq_id++;
-
+u3dFunctionModule::u3dFunctionModule()
+    : u3d_functions(NULL),
+      colorPrintf_p(NULL),
+      is_world_initialized(false),
+      is_initialized(false),
+      postmans_uniq_id(1),
+      recv_message(NULL),
+      part_message_buffer(NULL),
+      module_socket(robot_io_service_),
+      module_postman_thread(NULL),
+      postman_thread_waker_flag(false),
+      module_reciever_thread(NULL),
+      data_for_shared_memory(NULL),
+      box_of_messages(NULL) {
   u3d_functions = new FunctionData *[COUNT_U3D_FUNCTIONS];
   system_value function_id = 0;
 
@@ -409,36 +416,34 @@ int u3dFunctionModule::startProgram(int uniq_index) {
     is_fail_to_prepare = true;
     return 1;
   }
-  int port;
-  std::string IP;
-  port = ini.GetLongValue("connection", "port", 0);
+
+  int port = ini.GetLongValue("connection", "port", 0);
   if (!port) {
     colorPrintf(ConsoleColor(ConsoleColor::red), "Port is empty\n");
     is_fail_to_prepare = true;
     return 1;
   }
-  IP = ini.GetValue("connection", "ip", "");
+
+  std::string IP = ini.GetValue("connection", "ip", "");
   if (IP == "") {
     colorPrintf(ConsoleColor(ConsoleColor::red), "IP is empty\n");
     is_fail_to_prepare = true;
     return 1;
   }
 
-  // Create and connect to socket
   boost::asio::ip::tcp::endpoint endpoint(
       boost::asio::ip::address::from_string(IP.c_str()), port);
   module_socket.async_connect(
       endpoint, boost::bind(&u3dFunctionModule::connect_handler, this, _1));
-  // Check connection to socket
   robot_io_service_.run();
   if (is_fail_to_prepare) {
     return 1;
   }
   robot_io_service_.reset();
 
+  is_initialized = true;
   box_of_messages = new std::vector<BoxOfMessagesData *>();
 
-  // Create File Mapping
   boost::interprocess::shared_memory_object shm_obj(
       boost::interprocess::open_or_create, "PostmansSharedMemory",
       boost::interprocess::read_write);
@@ -457,16 +462,10 @@ int u3dFunctionModule::startProgram(int uniq_index) {
   data_for_shared_memory->ids_of_objects = &ids_of_created_objects;
 
   std::memcpy(region.get_address(), &data_for_shared_memory, region.get_size());
-  // Create postman thread
   module_postman_thread = new boost::thread(
       boost::bind(&u3dFunctionModule::modulePostmanThread, this));
-  // Ñreate reciever thread
   module_reciever_thread = new boost::thread(
       boost::bind(&u3dFunctionModule::moduleRecieverThread, this));
-
-  // if (is_fail_to_prepare) {
-  //  return 1;
-  //}
 
   return 0;
 }
@@ -492,11 +491,9 @@ void u3dFunctionModule::destroy() {
   module_mutex.unlock();
 
   // wait to close thread;
-  if (module_postman_thread) {
+  if (is_initialized) {
     module_postman_thread->join();
     delete module_postman_thread;
-  }
-  if (module_reciever_thread) {
     module_reciever_thread->join();
     delete module_reciever_thread;
   }
@@ -508,10 +505,12 @@ void u3dFunctionModule::destroy() {
     i->second->cond_messenger_waker->notify_one();
   }
 
-  delete box_of_messages;
-  delete data_for_shared_memory;
-  delete recv_message;
-  delete part_message_buffer;
+  if (is_initialized) {
+    delete box_of_messages;
+    delete data_for_shared_memory;
+    delete recv_message;
+    delete part_message_buffer;
+  }
   boost::interprocess::shared_memory_object::remove("PostmansSharedMemory");
 
   delete this;
