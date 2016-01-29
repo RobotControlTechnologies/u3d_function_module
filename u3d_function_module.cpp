@@ -35,6 +35,8 @@ const unsigned int COUNT_U3D_FUNCTIONS = 13;
 extern std::string getConfigPath();
 bool is_fail_to_prepare;
 
+#define IID "RCT.u3d_function_module_v100"
+
 void testHold(int _hold) {
   switch (_hold) {
     case 0:
@@ -114,6 +116,13 @@ u3dFunctionModule::u3dFunctionModule()
       module_reciever_thread(NULL),
       data_for_shared_memory(NULL),
       box_of_messages(NULL) {
+
+  mi = new ModuleInfo;
+  mi->uid = IID;
+  mi->mode = ModuleInfo::Modes::PROD;
+  mi->version = BUILD_NUMBER;
+  mi->digest = NULL;
+
   u3d_functions = new FunctionData *[COUNT_U3D_FUNCTIONS];
   system_value function_id = 0;
 
@@ -244,6 +253,7 @@ FunctionResult *u3dFunctionModule::executeFunction(system_value function_index,
     return NULL;
   }
 
+  FunctionResult *fr = NULL;
   try {
     // new test if we don't connect to socket or have problems with connection
     module_mutex.lock();
@@ -371,17 +381,18 @@ FunctionResult *u3dFunctionModule::executeFunction(system_value function_index,
         break;
       }
     };
-    return new FunctionResult(1, rez);
+    fr = new FunctionResult(FunctionResult::Types::VALUE, rez);
   } catch (...) {
-    return new FunctionResult(0);
+    fr = new FunctionResult(FunctionResult::Types::EXCEPTION);
   };
+  return fr;
 };
 
 FunctionData **u3dFunctionModule::getFunctions(unsigned int *count_functions) {
   *count_functions = COUNT_U3D_FUNCTIONS;
   return u3d_functions;
 };
-const char *u3dFunctionModule::getUID() { return "u3dfunction_dll"; };
+const struct ModuleInfo &u3dFunctionModule::getModuleInfo() { return *mi; }
 void *u3dFunctionModule::writePC(unsigned int *buffer_length) {
   *buffer_length = 0;
   return NULL;
@@ -471,6 +482,7 @@ int u3dFunctionModule::startProgram(int uniq_index) {
 }
 int u3dFunctionModule::endProgram(int uniq_index) { return 0; }
 void u3dFunctionModule::destroy() {
+  delete mi;
   robot_io_service_.stop();
 
   for (unsigned int j = 0; j < COUNT_U3D_FUNCTIONS; ++j) {
@@ -581,6 +593,10 @@ void u3dFunctionModule::moduleRecieverThread() {
                                           this, &module_socket, _1, _2));
   robot_io_service_.run();
 }
+
+PREFIX_FUNC_DLL unsigned short getFunctionModuleApiVersion() {
+  return FUNCTION_MODULE_API_VERSION;
+};
 
 PREFIX_FUNC_DLL FunctionModule *getFunctionModuleObject() {
   return new u3dFunctionModule();
