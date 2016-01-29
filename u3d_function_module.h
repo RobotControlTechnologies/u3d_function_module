@@ -50,19 +50,13 @@ class u3dFunctionModule : public FunctionModule {
   std::vector<BoxOfMessagesData *> *box_of_messages;
   std::map<int, BoxOfMessagesData *> postmans_map_of_mailed_messages;
 
-#ifndef FUNCTION_MODULE_H_000
   ModuleInfo *mi;
-#endif
 
  public:
   u3dFunctionModule();
 
   // init
-#ifdef FUNCTION_MODULE_H_000
-  const char *getUID();
-#else
   const struct ModuleInfo &getModuleInfo();
-#endif
   void prepare(colorPrintfModule_t *colorPrintf_p,
                colorPrintfModuleVA_t *colorPrintfVA_p);
 

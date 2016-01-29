@@ -117,13 +117,11 @@ u3dFunctionModule::u3dFunctionModule()
       data_for_shared_memory(NULL),
       box_of_messages(NULL) {
 
-#ifndef FUNCTION_MODULE_H_000
   mi = new ModuleInfo;
   mi->uid = IID;
   mi->mode = ModuleInfo::Modes::PROD;
   mi->version = BUILD_NUMBER;
   mi->digest = NULL;
-#endif
 
   u3d_functions = new FunctionData *[COUNT_U3D_FUNCTIONS];
   system_value function_id = 0;
@@ -383,17 +381,9 @@ FunctionResult *u3dFunctionModule::executeFunction(system_value function_index,
         break;
       }
     };
-#ifdef FUNCTION_MODULE_H_000
-      fr = new FunctionResult(1, rez);
-#else
-      fr = new FunctionResult(FunctionResult::Types::VALUE, rez);
-#endif
+    fr = new FunctionResult(FunctionResult::Types::VALUE, rez);
   } catch (...) {
-#ifdef FUNCTION_MODULE_H_000
-      fr = new FunctionResult(0);
-#else
-      fr = new FunctionResult(FunctionResult::Types::EXCEPTION);
-#endif
+    fr = new FunctionResult(FunctionResult::Types::EXCEPTION);
   };
   return fr;
 };
@@ -402,11 +392,7 @@ FunctionData **u3dFunctionModule::getFunctions(unsigned int *count_functions) {
   *count_functions = COUNT_U3D_FUNCTIONS;
   return u3d_functions;
 };
-#ifdef FUNCTION_MODULE_H_000
-const char *u3dFunctionModule::getUID() { return IID; }
-#else
 const struct ModuleInfo &u3dFunctionModule::getModuleInfo() { return *mi; }
-#endif
 void *u3dFunctionModule::writePC(unsigned int *buffer_length) {
   *buffer_length = 0;
   return NULL;
@@ -496,9 +482,7 @@ int u3dFunctionModule::startProgram(int uniq_index) {
 }
 int u3dFunctionModule::endProgram(int uniq_index) { return 0; }
 void u3dFunctionModule::destroy() {
-#ifndef FUNCTION_MODULE_H_000
   delete mi;
-#endif
   robot_io_service_.stop();
 
   for (unsigned int j = 0; j < COUNT_U3D_FUNCTIONS; ++j) {
@@ -610,11 +594,9 @@ void u3dFunctionModule::moduleRecieverThread() {
   robot_io_service_.run();
 }
 
-#ifndef FUNCTION_MODULE_H_000
 PREFIX_FUNC_DLL unsigned short getFunctionModuleApiVersion() {
   return FUNCTION_MODULE_API_VERSION;
 };
-#endif
 
 PREFIX_FUNC_DLL FunctionModule *getFunctionModuleObject() {
   return new u3dFunctionModule();
