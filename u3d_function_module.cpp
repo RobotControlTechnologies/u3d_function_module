@@ -595,7 +595,7 @@ void u3dFunctionModule::moduleRecieverThread() {
 }
 
 PREFIX_FUNC_DLL unsigned short getFunctionModuleApiVersion() {
-  return FUNCTION_MODULE_API_VERSION;
+  return MODULE_API_VERSION;
 };
 
 PREFIX_FUNC_DLL FunctionModule *getFunctionModuleObject() {
