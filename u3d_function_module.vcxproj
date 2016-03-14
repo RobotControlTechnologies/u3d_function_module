@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\..\bin\function_modules\u3d</OutDir>
-    <IncludePath>C:\Programs\boost_1_58_0;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Programs\boost_1_60_0;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);</LibraryPath>
     <TargetName>u3d_module</TargetName>
   </PropertyGroup>
