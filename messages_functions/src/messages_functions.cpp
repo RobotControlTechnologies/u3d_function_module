@@ -16,13 +16,11 @@
 
 /// MACROS
 #define GET_COORDS(extract_function)              \
-  bool is_exist = false;                          \
   (*box_mutex).lock();                            \
   for (auto i = ids_of_created_objects->begin();  \
        i != ids_of_created_objects->end(); i++) { \
     if ((*i) == object_id) {                      \
       (*box_mutex).unlock();                      \
-      is_exist = true;                            \
       std::string params("+obj:coords,");         \
       params.append(returnStr(object_id));        \
       std::string temp_string;                    \
@@ -31,10 +29,8 @@
       return d;                                   \
     }                                             \
   }                                               \
-  if (!is_exist) {                                \
-    (*box_mutex).unlock();                        \
-    throw std::exception();                       \
-  }
+  (*box_mutex).unlock();                        \
+  throw std::exception();
 
 #define DELETE_OBJECT_MACRO                       \
   bool is_exist = false;                          \
@@ -70,7 +66,7 @@ std::string returnStr(int _i) {
   const int len = sprintf(buf, "%d", _i);
   std::string temp_str(buf, len);
   return temp_str;
-};
+}
 
 double extractString(std::string str, char first, char second) {
   std::string temp("");
@@ -87,31 +83,31 @@ double extractString(std::string str, char first, char second) {
   temp.assign(str, beg, end - beg);
 
   return strtod(temp.c_str(), NULL);
-};
+}
 int extractObj_id(std::string str) {
   return (int)extractString(str, ':', '&');
-};
-double extractX(std::string str) { return extractString(str, ':', ','); };
+}
+double extractX(std::string str) { return extractString(str, ':', ','); }
 double extractY(std::string str) {
   int first_pos = str.find(',') + 1;
   int last_pos = str.find(',', first_pos + 1);
   std::string temp_str = str.substr(first_pos, last_pos - first_pos);
 
   return strtod(temp_str.c_str(), NULL);
-};
+}
 double extractZ(std::string str) {
   int first_pos = str.find(',');
   first_pos = str.find(',', first_pos + 1) + 1;
   int last_pos = str.find(',', first_pos + 1);
   std::string temp_str = str.substr(first_pos, last_pos - first_pos);
   return strtod(temp_str.c_str(), NULL);
-};
+}
 double extractAngle(std::string str) {
   int first_pos = str.find_last_of(',') + 1;
   int last_pos = str.find('&');
   std::string temp_str = str.substr(first_pos, last_pos - first_pos);
   return strtod(temp_str.c_str(), NULL);
-};
+}
 std::string extractMessage(std::string str) {
   std::string temp("");
 
@@ -126,17 +122,17 @@ std::string extractMessage(std::string str) {
 
   temp.assign(str, beg, end - beg);
   return temp;
-};
+}
 
 int extractUniq_Id(std::string str) {
   return (int)extractString(str, '%', '+');
-};
+}
 
 void testStringSuccess(std::string str) {
   if (str.find("fail") != std::string::npos) {
     throw std::exception();
   }
-};
+}
 
 void readSharedMemory() {
   boost::interprocess::shared_memory_object shm_obj(
@@ -184,7 +180,7 @@ std::string createMessage(std::string params) {
 
   testStringSuccess(result_message_str);
   return result_message_str;
-};
+}
 
 // createWorld
 void createWorld(int x, int y, int z) {
