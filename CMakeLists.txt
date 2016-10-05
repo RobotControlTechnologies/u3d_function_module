@@ -99,7 +99,6 @@ if(Boost_FOUND)
   if(WIN32)
     target_link_libraries(${PROJECT} PRIVATE ws2_32)
     target_compile_definitions(${PROJECT} PRIVATE
-      BOOST_USE_WINDOWS_H
       _WIN32_WINNT=0x0501
       WINVER=0x0501
     )

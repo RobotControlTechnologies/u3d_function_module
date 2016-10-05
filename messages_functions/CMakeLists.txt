@@ -62,9 +62,10 @@ if(Boost_FOUND)
   target_include_directories(${PROJECT} PRIVATE ${Boost_INCLUDE_DIRS})
   target_link_libraries(${PROJECT} PUBLIC ${Boost_LIBRARIES})
   if(WIN32)
-    target_compile_definitions(${PROJECT}
-      PRIVATE _WIN32_WINNT=0x0501
-      PRIVATE WINVER=0x0501
+    target_link_libraries(${PROJECT} PUBLIC ws2_32)
+    target_compile_definitions(${PROJECT} PRIVATE
+      _WIN32_WINNT=0x0501
+      WINVER=0x0501
     )
   endif(WIN32)
 else()

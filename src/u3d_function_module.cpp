@@ -18,10 +18,9 @@
 #include <dlfcn.h>
 #endif
 
-#include <boost/asio.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
-
+#include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
