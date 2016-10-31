@@ -10,9 +10,14 @@ endif()
 # Sources
 #################################################################################
 set(SOURCES
-  src/config.cpp
   src/u3d_function_module.cpp
 )
+
+if(WIN32)
+  list(APPEND SOURCES
+    src/config.cpp
+  )
+endif(WIN32)
 
 set(PUBLIC_HEADERS
 )
