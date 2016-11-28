@@ -18,17 +18,17 @@
 #include <dlfcn.h>
 #endif
 
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/shared_memory_object.hpp>
 
 #include <SimpleIni.h>
 #include "module.h"
 #include "function_module.h"
 #include "u3d_function_module.h"
-#include "messages_functions.h"
+#include <messages_functions.h>
 
 // GLOBAL VARIABLES
 const unsigned int COUNT_U3D_FUNCTIONS = 13;
@@ -93,7 +93,7 @@ void u3dFunctionModule::read_handler(
           ->cond_messenger_waker->notify_one();
       postmans_map_of_mailed_messages.erase(uniq_id);
       module_mutex.unlock();
-    };
+    }
     part_message_buffer->assign(temp_message);
   }
   (*handler_socket)
@@ -245,7 +245,7 @@ u3dFunctionModule::u3dFunctionModule()
   u3d_functions[function_id] =
       new FunctionData(function_id + 1, 1, Params, "getAngle");
   function_id++;
-};
+}
 
 FunctionResult *u3dFunctionModule::executeFunction(system_value function_index,
                                                    void **args) {
@@ -380,18 +380,18 @@ FunctionResult *u3dFunctionModule::executeFunction(system_value function_index,
         rez = getAngle((int)*input1);
         break;
       }
-    };
+    }
     fr = new FunctionResult(FunctionResult::Types::VALUE, rez);
   } catch (...) {
     fr = new FunctionResult(FunctionResult::Types::EXCEPTION);
-  };
+  }
   return fr;
-};
+}
 
 FunctionData **u3dFunctionModule::getFunctions(unsigned int *count_functions) {
   *count_functions = COUNT_U3D_FUNCTIONS;
   return u3d_functions;
-};
+}
 const struct ModuleInfo &u3dFunctionModule::getModuleInfo() { return *mi; }
 void *u3dFunctionModule::writePC(unsigned int *buffer_length) {
   *buffer_length = 0;
@@ -526,12 +526,12 @@ void u3dFunctionModule::destroy() {
   boost::interprocess::shared_memory_object::remove("PostmansSharedMemory");
 
   delete this;
-};
+}
 
 void u3dFunctionModule::prepare(colorPrintfModule_t *colorPrintf_p,
                                 colorPrintfModuleVA_t *colorPrintfVA_p) {
   this->colorPrintf_p = colorPrintfVA_p;
-};
+}
 
 void u3dFunctionModule::colorPrintf(ConsoleColor colors, const char *mask,
                                     ...) {
@@ -583,7 +583,7 @@ void u3dFunctionModule::modulePostmanThread() {
     }
     module_mutex.unlock();
   }
-};
+}
 
 void u3dFunctionModule::moduleRecieverThread() {
   recv_message = new char[1024];
@@ -596,8 +596,8 @@ void u3dFunctionModule::moduleRecieverThread() {
 
 PREFIX_FUNC_DLL unsigned short getFunctionModuleApiVersion() {
   return MODULE_API_VERSION;
-};
+}
 
 PREFIX_FUNC_DLL FunctionModule *getFunctionModuleObject() {
   return new u3dFunctionModule();
-};
+}

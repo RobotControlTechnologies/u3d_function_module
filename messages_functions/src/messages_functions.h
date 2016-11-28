@@ -13,7 +13,7 @@ struct BoxOfMessagesData {
                     bool bool_messenger_wake_flag, std::string _message)
       : bool_messenger_wake_flag(bool_messenger_wake_flag), _message(_message) {
     this->cond_messenger_waker = cond_;
-  };
+  }
 };
 struct MutexAndBoxVector {
   boost::mutex *mtx;
